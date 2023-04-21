@@ -13,8 +13,10 @@ class MapSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     permission_classes = [IsAuthenticated]
-    house = HouseSerializer()
+    
     map = MapSerializer()
+    land = LandSerializer(required=False)
+    house = HouseSerializer(required=False)
     class Meta:
         model = Post
         fields ="__all__"

@@ -6,6 +6,11 @@ from rest_framework.response import Response
 from rest_framework.views import status
 from .models import CustomUser
 from .serializers import CustomUserSerializer
+from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.views import APIView
+
+
 
 class RegisterUserView(generics.CreateAPIView):
     """
@@ -47,15 +52,41 @@ class LoginUserView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get("email", "")
         password = request.data.get("password", "")
-        user = CustomUser.objects.filter(email=email, password=password).first()
+        
+        user = CustomUser.objects.filter(email=email).first()
+        user = get_object_or_404(CustomUser,email=email)
         if user:
-            return Response(
-                data=CustomUserSerializer(user).data,
-                status=status.HTTP_200_OK
-            )
+            if user.check_password(password):
+                return Response(
+                    data=CustomUserSerializer(user).data,
+                    status=status.HTTP_200_OK
+                )
         return Response(
             data={
                 "message": "Invalid credentials. Try again."
             },
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+
+class UserDetail(generics.RetrieveAPIView):
+    
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+
+
+
+# def my_view(request): 
+#     request.user
+
+
+class getUserInfoByAccessToken(APIView):
+
+    def post(self,request):
+        token = request.data.pop("access_token")
+        access_token = AccessToken(access_token)
+        return Response(access_token['user_id'])
+
+
