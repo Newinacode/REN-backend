@@ -1,9 +1,12 @@
 from django.shortcuts import render
 from .models import Post
-from .serializers import PostSerializer,MapSerializer
+from .serializers import PostSerializer#,MapSerializer
 from rest_framework import mixins,generics,viewsets,serializers
-from property.serializers import HouseSerializer,LandSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from property.serializers import HouseSerializer,LandSerializer
 
 
 
@@ -39,7 +42,19 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 
+@api_view(['PUT'])
+def update_post(request, post_id):
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
+    serializer = PostSerializer(post, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 
