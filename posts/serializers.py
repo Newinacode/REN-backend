@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from posts.models import Post#,Map
+from posts.models import Post,PostImage#,Map
 from property.serializers import PropertySerializer,HouseSerializer,LandSerializer
 from rest_framework.permissions import IsAuthenticated
 
@@ -10,12 +10,66 @@ from rest_framework.permissions import IsAuthenticated
 #         fields = '__all__'
 
      
+class PostImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField('get_image_url')
 
+    class Meta:
+        model = PostImage
+        fields = ("id","images","image_url","post")
+
+    def get_image_url(self, obj):
+        return obj.images.url
 
 
 class PostSerializer(serializers.ModelSerializer):
     permission_classes = [IsAuthenticated]
+    images= PostImageSerializer(many=True, read_only = True,)
+    # uploaded_images = serializers.ListField(
+    #     child = serializers.ImageField(max_length = 1000000, allow_empty_file = False, use_url = False,write_only=True)
+ 
+    # )
+
+
+    class Meta: 
+        fields ='__all__'
+# "title",
+# "content",
+# "created_at",
+# "updated_at",
+# "purpose",
+# "area_formating",
+# "area1",
+# "area2",
+# "area3",
+# "price",
+# "property_type",
+# "no_of_bedrooms",
+# "no_of_bathrooms",
+# "no_of_floor",
+# "parking_area",
+# "facing_side",
+# "built_date",
+# "location",
+# "street",
+# "city",
+# "longitude",
+# "latitude","image","uploaded_images"]
+
+
+
     
+
+
+
+    # def create(self,validated_data): 
+    #     print(validated_data)
+    #     upload_images = validated_data.pop("uploaded_images")
+    #     post = Post.objects.create(**validated_data)
+    #     for image in upload_images:
+    #         PostImage.objects.create(post=post,images=image)
+
+    #     return post
+
     # map = MapSerializer(required=False)
     # land = LandSerializer(required=False)
     # house = HouseSerializer(required=False)
