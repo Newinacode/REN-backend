@@ -83,4 +83,9 @@ class Post(models.Model):
 
 #     def __str__(self):
 #         return f'{self.location} in {self.city}'
-    
+
+
+
+class PostImage(models.Model): 
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
+    images = models.ImageField(upload_to='API/images',max_length=100,null=True)
