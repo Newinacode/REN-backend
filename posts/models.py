@@ -61,8 +61,8 @@ class Post(models.Model):
     location = models.CharField(max_length=255)
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=30, decimal_places=15)
+    latitude = models.DecimalField(max_digits=30, decimal_places=15)
     
 
     def __str__(self) -> str:
