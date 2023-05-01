@@ -46,6 +46,7 @@ class CustomUser(AbstractBaseUser):
     name = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
@@ -70,3 +71,15 @@ class CustomUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+
+
+class OPT(models.Model): 
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    opt_number = models.PositiveIntegerField()
+
+
+    def __str__(self) -> str:
+        return f'{self.user.name} OPT {self.opt_number}'
+

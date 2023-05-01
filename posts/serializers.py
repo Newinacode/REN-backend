@@ -21,6 +21,12 @@ class PostImageSerializer(serializers.ModelSerializer):
         return obj.images.url
 
 
+
+
+
+
+
+
 class PostSerializer(serializers.ModelSerializer):
     permission_classes = [IsAuthenticated]
     images= PostImageSerializer(many=True, read_only = True,)
@@ -32,6 +38,17 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta: 
         fields ='__all__'
+
+
+
+
+
+# class SearchResultSerializer(PostSerializer): 
+#     radius = serializers.FloatField()
+
+
+#     class Meta: 
+#         fields = "__all__"
 # "title",
 # "content",
 # "created_at",

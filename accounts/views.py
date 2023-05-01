@@ -4,11 +4,13 @@ from django.shortcuts import render
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import status
-from .models import CustomUser
+from .models import CustomUser,OPT
 from .serializers import CustomUserSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
+from django.core.mail import send_mail
+import random
 
 
 
@@ -90,3 +92,39 @@ class getUserInfoByAccessToken(APIView):
         return Response(access_token['user_id'])
 
 
+
+
+class CreateOptForEmail(APIView): 
+    def get(self,request,pk):
+        user = CustomUser.objects.get(id=pk)
+        opt = OPT(user=user,opt_number=random.randint(0,99999))
+        opt.save()
+        sub = "OPT"
+        msg = f"Your OPT is {opt.opt_number}"
+        send_mail(
+            sub,msg,"realestatenepalkath@gmail.com",[user.email]
+        )
+        return Response(data={
+            "message":"OPT sent to signup email"
+        },            status=status.HTTP_201_CREATED)
+
+
+class VerifyOPT(APIView): 
+    def post(self,request,pk):
+        sent_opt = request.data["opt"]
+        print(sent_opt)
+        pass
+        user = CustomUser.objects.get(id=pk)
+        print(user)
+        opt = OPT.objects.get(user=user)
+        valid_opt = opt.opt_number 
+        if(valid_opt==sent_opt):
+            user.is_verified = True
+            user.save()
+            return Response(data={
+                "message":"Valid OPT"},status=status.HTTP_200_OK) 
+        return Response(  
+                data={
+                "message":"Invalid OPT",},status=status.HTTP_401_UNAUTHORIZED
+
+        )

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Post,PostImage
-from .serializers import PostSerializer,PostImageSerializer#,MapSerializer
+from .serializers import PostSerializer#SearchResultSerializer,PostImageSerializer#,MapSerializer
 from rest_framework import mixins,generics,viewsets,serializers
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.decorators import api_view
@@ -10,6 +10,8 @@ from property.serializers import HouseSerializer,LandSerializer
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser
+from math import radians, sin, cos, sqrt, atan2
+from django.db.models import F
 
 
 
@@ -55,10 +57,10 @@ class PostDetailView(APIView):
         post = get_object_or_404(Post,id=pk)
         serializer = PostSerializer(post,data=request.data)
         if serializer.is_valid(): 
-            serializers.save()
-            return Response(serializers.data)
+            serializer.save()
+            return Response(serializer.data)
 
-        return Response(serializers.errors,status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
     def delete(self,request,pk,format=None): 
@@ -67,7 +69,87 @@ class PostDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+def distance(lat1, lon1, lat2, lon2):
+    R = 6371  # radius of the Earth in kilometers
 
+    # convert latitude and longitude coordinates from degrees to radians
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
+    # calculate the differences between the latitudes and longitudes
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    # apply the Haversine formula to calculate the distance
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    distance = R * c
+
+    return distance
+
+
+
+
+
+class PostSearchByArea(APIView):
+    def post(self,request,format=None): 
+        result = Post.objects.all()
+
+        
+        longitude = float(request.data["longitude"])
+        latitude = float(request.data["latitude"])
+        radius = float(request.data["radius"])
+
+
+
+        
+       
+
+        print(result)
+       
+        if request.data["area1"]:
+            print("got here")
+            area1 =request.data["area1"]
+            result = result.filter(area1__gte=area1)
+
+        if request.data["area2"]:
+            area2 =request.data["area2"]
+            result = result.filter(area2__gte=area2)
+    
+        if request.data["area3"]:
+            area1 =request.data["area3"]
+            result = result.filter(area3__gte=area3)
+            
+
+        if request.data["type"]:
+            
+
+            if "house":
+                type = request.data["type"]
+                result = result.filter(property_type="H")
+                if request.data["bedroom"]: 
+                    bedroom = int(request.data["bedroom"])
+                    print(result)
+                    result = result.filter(no_of_bedrooms__gte=bedroom)
+        area1 = request.data["area1"] 
+        area2 = request.data["area2"] 
+        area3 = request.data["area3"]
+
+        
+        if longitude and latitude and radius:
+            result = [res for res in result if distance(longitude,latitude,res.longitude,res.latitude)<=radius]
+        serializers = PostSerializer(result,many=True)
+        return Response(serializers.data)
+
+
+        
+
+
+        
+      
+        
+
+
+        
 
 class PostViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
