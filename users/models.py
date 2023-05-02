@@ -10,11 +10,6 @@ class Profile(models.Model):
     age = models.PositiveIntegerField()
     
 
-class Location(models.Model): 
-    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
-    longitude = models.DecimalField()
-    longitude = models.DecimalField()
-
 
 
 class SavedHome(models.Model): 

@@ -102,7 +102,7 @@ class CreateOptForEmail(APIView):
         sub = "OPT"
         msg = f"Your OPT is {opt.opt_number}"
         send_mail(
-            sub,msg,"realestatenepalkath@gmail.com",[user.email]
+            sub,msg,"botroger69@gmail.com",[user.email]
         )
         return Response(data={
             "message":"OPT sent to signup email"
@@ -111,14 +111,15 @@ class CreateOptForEmail(APIView):
 
 class VerifyOPT(APIView): 
     def post(self,request,pk):
-        sent_opt = request.data["opt"]
+        sent_opt = request.data.get("otp")
         print(sent_opt)
-        pass
         user = CustomUser.objects.get(id=pk)
         print(user)
         opt = OPT.objects.get(user=user)
         valid_opt = opt.opt_number 
-        if(valid_opt==sent_opt):
+        print(valid_opt)
+        print(valid_opt==int(sent_opt))
+        if(valid_opt==int(sent_opt)):
             user.is_verified = True
             user.save()
             return Response(data={

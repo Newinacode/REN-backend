@@ -6,17 +6,19 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from property.serializers import HouseSerializer,LandSerializer
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser
 from math import radians, sin, cos, sqrt, atan2
 from django.db.models import F
+from rest_framework.permissions import IsAuthenticated
 
 
 
 class PostListView(APIView): 
     parser_classes = (MultiPartParser, )
+    # permission_classes = [IsAuthenticated]
+
 
 
     def get(self,request,format=None): 
@@ -121,15 +123,15 @@ class PostSearchByArea(APIView):
             
 
         if request.data["type"]:
-            
-
-            if "house":
+            if request.data["type"]=="house":
                 type = request.data["type"]
                 result = result.filter(property_type="H")
                 if request.data["bedroom"]: 
                     bedroom = int(request.data["bedroom"])
                     print(result)
                     result = result.filter(no_of_bedrooms__gte=bedroom)
+            elif request.data["type"] == "land": 
+                result = result.filter(property_type="L")
         area1 = request.data["area1"] 
         area2 = request.data["area2"] 
         area3 = request.data["area3"]

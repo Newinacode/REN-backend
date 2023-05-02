@@ -8,7 +8,4 @@ urlpatterns = [
     path("auth/token/",getUserInfoByAccessToken.as_view()),
     path("auth/sendopt/<int:pk>",CreateOptForEmail.as_view()),
     path("auth/verifyopt/<int:pk>",VerifyOPT.as_view())
-       
-        
-
 ]
