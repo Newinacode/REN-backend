@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'property',
     'rest_framework',
     'accounts',
-    'users'
+    'users',
+    'import_export',
+
 ]
 
 MIDDLEWARE = [
@@ -206,3 +208,8 @@ EMAIL_HOST_PASSWORD = "eoppyboipiagbmgf"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 #finalyearproject@
+
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')

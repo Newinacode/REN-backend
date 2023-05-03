@@ -106,7 +106,6 @@ class PostSearchByArea(APIView):
         
        
 
-        print(result)
        
         if request.data["area1"]:
             print("got here")
@@ -136,9 +135,11 @@ class PostSearchByArea(APIView):
         area2 = request.data["area2"] 
         area3 = request.data["area3"]
 
-        
+        print(result)
         if longitude and latitude and radius:
-            result = [res for res in result if distance(longitude,latitude,res.longitude,res.latitude)<=radius]
+            result = [res for res in result if distance(longitude,latitude,res.latitude,res.longitude)<=radius]
+        
+        print(len(result))
         serializers = PostSerializer(result,many=True)
         return Response(serializers.data)
 

@@ -43,7 +43,7 @@ class Post(models.Model):
     area1 = models.IntegerField()
     area2 = models.IntegerField()
     area3 = models.IntegerField()
-    price = models.PositiveBigIntegerField()
+    price = models.FloatField()
 
     property_type = models.CharField(max_length=1,choices=PROPERTY_TYPE)
 
@@ -52,14 +52,13 @@ class Post(models.Model):
     no_of_bathrooms = models.IntegerField()
     no_of_floor = models.IntegerField()
     parking_area = models.PositiveIntegerField()
-    facing_side = models.CharField(max_length=2)
+    facing_side = models.CharField(max_length=100)
     built_date = models.DateField()
 
 
 #map
 
     location = models.CharField(max_length=255)
-    street = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     longitude = models.DecimalField(max_digits=30, decimal_places=15)
     latitude = models.DecimalField(max_digits=30, decimal_places=15)
