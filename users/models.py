@@ -32,7 +32,7 @@ class Recommendation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True)
 
     def __str__(self):
-        return f"{self.user.email} is suggested with postid {self.post.id}"
+        return f"{self.user.email} is suggested with postid {self.post.id} at time {self.created_at}"
 
     class Meta: 
         ordering = ['-created_at']

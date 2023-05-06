@@ -12,6 +12,7 @@ from rest_framework.parsers import MultiPartParser
 from math import radians, sin, cos, sqrt, atan2
 from django.db.models import F
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 
 
 
@@ -93,7 +94,10 @@ def distance(lat1, lon1, lat2, lon2):
 
 
 class PostSearchByArea(APIView):
+
     def post(self,request,format=None): 
+        paginator = PageNumberPagination()
+
         result = Post.objects.all()
 
         
@@ -140,8 +144,13 @@ class PostSearchByArea(APIView):
             result = [res for res in result if distance(longitude,latitude,res.latitude,res.longitude)<=radius]
         
         print(len(result))
+
+
         serializers = PostSerializer(result,many=True)
-        return Response(serializers.data)
+        paginated_data = paginator.paginate_queryset(serializers.data, request)
+
+        
+        return Response(paginated_data)
 
 
         

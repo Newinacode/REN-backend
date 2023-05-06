@@ -146,15 +146,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # require the JWT to access the api function
-REST_FRAMEWORK = {
+# REST_FRAMEWORK = {
     
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
         
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+    
 
+# }
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
 }
 
 
@@ -207,8 +210,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'botroger69@gmail.com'
-EMAIL_HOST_PASSWORD = ""
+EMAIL_HOST_USER = 'realestatenepalkathford@gmail.com'
+EMAIL_HOST_PASSWORD = "zgwwryyljfyfkmxm"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 

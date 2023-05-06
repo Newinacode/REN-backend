@@ -102,7 +102,7 @@ class CreateOptForEmail(APIView):
         sub = "OPT"
         msg = f"Your OPT is {opt.opt_number}"
         send_mail(
-            sub,msg,"botroger69@gmail.com",[user.email]
+            sub,msg,"realestatenepalkathford@gmail.com",[user.email]
         )
         return Response(data={
             "message":"OPT sent to signup email"
