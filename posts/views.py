@@ -147,10 +147,10 @@ class PostSearchByArea(APIView):
 
 
         serializers = PostSerializer(result,many=True)
-        paginated_data = paginator.paginate_queryset(serializers.data, request)
+        # paginated_data = paginator.paginate_queryset(serializers.data, request)
 
         
-        return Response(paginated_data)
+        return Response(serializers.data)
 
 
         
