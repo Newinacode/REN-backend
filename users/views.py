@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
-
+# from .models import Interested
 class ListSavedHouse(APIView): 
 
     def get(self,request,pk,format=None): 
@@ -116,7 +116,18 @@ class RecommendationDetail(APIView):
         return Response(status=status.HTTP_200_OK)
 
     
+# class SavedInterest(APIView):
+#     def post(self,request): 
+#         user_id = request.data["user_id"]
+#         post_id = request.data["post_id"]
+#         user = CustomUser.objects.get(id=user_id)
+#         post = Post.objects.get(id=post_id)
+        
+#         interested = Interested(user=user_id,post=post_id)
+        
+#         interested.save()
 
+        
 
 class SavedHouseDetail(APIView):
 
@@ -124,9 +135,16 @@ class SavedHouseDetail(APIView):
     def get(self,request,userId,postId,format=None):
         user = CustomUser.objects.get(pk=userId)
         post = Post.objects.get(pk=postId)
-        savedHome = get_object_or_404(SavedHome,user=user,post=post)
+
+        savedHome = SavedHome.objects.filter(user=user,post=post)
+        if savedHome: 
+            savedHome = savedHome[0]
+
+        else:
+                return Response(status=status.HTTP_204_NO_CONTENT)
         serializer = SavedHouseSerializer(savedHome)
         return Response(serializer.data)
+        
 
     def post(self,request,userId,postId,format=None): 
         user = CustomUser.objects.get(pk=userId)
