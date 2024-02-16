@@ -15,7 +15,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 
 
-
 class PostListView(APIView): 
     parser_classes = (MultiPartParser, )
     # permission_classes = [IsAuthenticated]
@@ -29,6 +28,7 @@ class PostListView(APIView):
 
 
     def post(self,request,format=None):
+        permission_classes = [IsAuthenticated]
         print(request.data)
         uploaded_data = request.FILES.getlist("uploaded_images")
         print(request.data.get('uploaded_images'))
@@ -67,6 +67,7 @@ class PostDetailView(APIView):
 
 
     def delete(self,request,pk,format=None): 
+        permission_classes = [IsAuthenticated]
         post = get_object_or_404(Post,id=pk)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -11,14 +11,14 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 from django.core.mail import send_mail
 import random
-
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
 
 class RegisterUserView(generics.CreateAPIView):
     """
     POST auth/register/
     """
-    permission_classes = (permissions.AllowAny,)
     serializer_class = CustomUserSerializer
 
     def post(self, request, *args, **kwargs):
@@ -48,27 +48,43 @@ class LoginUserView(generics.CreateAPIView):
     """
     POST auth/login/
     """
-    permission_classes = (permissions.AllowAny,)
     serializer_class = CustomUserSerializer
 
     def post(self, request, *args, **kwargs):
         email = request.data.get("email", "")
         password = request.data.get("password", "")
         
-        user = CustomUser.objects.filter(email=email).first()
-        user = get_object_or_404(CustomUser,email=email)
+        # user = CustomUser.objects.filter(email=email).first()
+        # user = get_object_or_404(CustomUser,email=email)
+        user = authenticate(email=email, password=password)
+        
+        data = {}
+        print("here")
+
         if user:
-            if user.check_password(password):
-                return Response(
-                    data=CustomUserSerializer(user).data,
-                    status=status.HTTP_200_OK
-                )
-        return Response(
+            # if user.check_password(password):
+            #     RefreshToken
+            refresh = RefreshToken.for_user(user)
+            data = {
+                "user" : CustomUserSerializer(user).data,
+                "token":{
+                    "refresh_token":str(refresh),
+                    "access_token":str(refresh.access_token)
+                },
+                "message": "Login Sucessfully"
+            }
+
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
             data={
                 "message": "Invalid credentials. Try again."
             },
             status=status.HTTP_400_BAD_REQUEST
-        )
+            )
 
 
 
@@ -97,13 +113,13 @@ class getUserInfoByAccessToken(APIView):
 class CreateOptForEmail(APIView): 
     def get(self,request,pk):
         user = CustomUser.objects.get(id=pk)
-        opt = OPT(user=user,opt_number=random.randint(0,99999))
-        opt.save()
-        sub = "OPT"
+        otp = OPT(user=user,opt_number=random.randint(0,99999))
+        otp.save()
+        sub = "OTP"
         msg = f"Your OPT is {opt.opt_number}"
-        send_mail(
-            sub,msg,"realestatenepalkathford@gmail.com",[user.email]
-        )
+        # send_mail(
+        #     sub,msg,"realestatenepalkathford@gmail.com",[user.email]
+        # )
         return Response(data={
             "message":"OPT sent to signup email"
         },            status=status.HTTP_201_CREATED)
