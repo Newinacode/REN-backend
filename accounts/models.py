@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, mobile_number, name, password=None):
+    def create_user(self, email, mobile_number, name, password):
         """
         Creates and saves a user with the given email, mobile number, name, and password.
         """
@@ -15,6 +15,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Users must have a mobile number")
         if not name:
             raise ValueError("Users must have a name")
+        if not password: 
+            raise ValueError("Users must have a password")
 
         user = self.model(
             email=self.normalize_email(email),

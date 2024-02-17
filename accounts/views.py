@@ -22,27 +22,46 @@ class RegisterUserView(generics.CreateAPIView):
     serializer_class = CustomUserSerializer
 
     def post(self, request, *args, **kwargs):
-        email = request.data.get("email", "")
-        mobile_number = request.data.get("mobile_number", "")
-        name = request.data.get("name", "")
-        password = request.data.get("password", "")
-        if not email or not name or not password:
-            return Response(
-                data={
-                    "message": "email, name, and password are required to register a user"
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        new_user = CustomUser.objects.create_user(
-            email=email, 
-            mobile_number=mobile_number,
-            name=name, 
-            password=password
+        # email = request.data.get("email", "")
+        # mobile_number = request.data.get("mobile_number", "")
+        # name = request.data.get("name", "")
+        # password = request.data.get("password", "")
+        # if not email or not name or not password:
+        #     return Response(
+        #         data={
+        #             "message": "email, name, and password are required to register a user"
+        #         },
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+        # new_user = CustomUser.objects.create_user(
+        #     email=email, 
+        #     mobile_number=mobile_number,
+        #     name=name, 
+        #     password=password
+        # )
+
+        serializer = CustomUserSerializer(data = request.data)
+        data = {}
+        response_status = ''
+        if serializer.is_valid():
+            new_user = serializer.save()
+            print(new_user)
+            data = {
+                "data":CustomUserSerializer(new_user).data,
+                "message":"User has been created Successfully"
+            }
+            response_status = status.HTTP_201_CREATED
+            
+        else: 
+            data = {
+                "message":serializer.errors
+            }
+            response_status = status.HTTP_400_BAD_REQUEST
+        return Response (
+            data = data, 
+            status = response_status
         )
-        return Response(
-            data=CustomUserSerializer(new_user).data,
-            status=status.HTTP_201_CREATED
-        )
+
 
 class LoginUserView(generics.CreateAPIView):
     """
