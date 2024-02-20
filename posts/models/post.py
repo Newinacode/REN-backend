@@ -29,3 +29,6 @@ class Post(models.Model):
     latitude = models.DecimalField(max_digits=30, decimal_places=15)
     def __str__(self) -> str:
         return f'{self.title}'
+
+    class Meta:
+        app_label = "posts"

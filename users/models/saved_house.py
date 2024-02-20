@@ -9,3 +9,6 @@ class SavedHome(models.Model):
 
     def __str__(self): 
         return f'{self.user} liked {self.post}'
+
+    class Meta:
+        app_label = "users"

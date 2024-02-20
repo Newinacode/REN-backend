@@ -7,3 +7,5 @@ class OTP(models.Model):
 
     def __str__(self) -> str:
         return f'{self.user.name} OPT {self.otp_number}'
+    class Meta:
+        app_label = "accounts"

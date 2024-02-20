@@ -45,4 +45,5 @@ class Property(models.Model):
 
     class Meta: 
         abstract = True
+        
 

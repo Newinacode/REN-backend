@@ -26,3 +26,5 @@ class House(Property):
     facing_side = models.CharField(max_length=2)
     built_date = models.DateField()
 
+    class Meta:
+        app_label = "property"
