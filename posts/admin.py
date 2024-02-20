@@ -2,7 +2,8 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 
 # Register your models here.
-from .models import Post,PostImage
+from .models.post import Post
+from .models.post_image import PostImage
 from import_export import resources
 
 

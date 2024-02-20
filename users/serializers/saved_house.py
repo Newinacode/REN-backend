@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SavedHome,Profile
+from ..models.saved_house import SavedHome
 
 
 class SavedHouseSerializer(serializers.ModelSerializer):
@@ -8,4 +8,3 @@ class SavedHouseSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
      
-

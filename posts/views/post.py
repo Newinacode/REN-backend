@@ -1,6 +1,8 @@
 from django.shortcuts import render
-from .models import Post,PostImage
-from .serializers import PostSerializer#SearchResultSerializer,PostImageSerializer#,MapSerializer
+from ..models.post import Post
+from ..models.post_image import PostImage
+from ..serializers.post import PostSerializer
+#SearchResultSerializer,PostImageSerializer#,MapSerializer
 from rest_framework import mixins,generics,viewsets,serializers
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.decorators import api_view
@@ -13,9 +15,43 @@ from math import radians, sin, cos, sqrt, atan2
 from django.db.models import F
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
+from rest_framework import viewsets
 
 
-class PostListView(APIView): 
+
+
+
+class PostViewSet(viewsets.ViewSet):
+
+    def create(self,request):
+        print("Hello world")
+        
+        
+        return Response(data = request.data)
+
+        
+        # post_serializer = PostSerializer(**request.data)
+        # print(post_serializer)
+
+        # property_serializer = None
+        
+        # property_type = request.data.get("property_type")
+        # if property_type == "H":
+        #     property_serializer = HouseSerializer(**request.data)
+        # elif property_type == "L":
+        #     property_serializer = LandSerializer(**request.data)
+
+        
+
+
+
+
+        return Response(post_serializer)
+
+
+
+
+class PostView(APIView): 
     parser_classes = (MultiPartParser, )
     # permission_classes = [IsAuthenticated]
 
@@ -28,21 +64,22 @@ class PostListView(APIView):
 
 
     def post(self,request,format=None):
-        permission_classes = [IsAuthenticated]
-        print(request.data)
         uploaded_data = request.FILES.getlist("uploaded_images")
-        print(request.data.get('uploaded_images'))
         
         serializer = PostSerializer(data=request.data)
+        print(serializer.initial_data)
 
         if serializer.is_valid(): 
             new_data = serializer.save()
-            print(uploaded_data)
             for uploaded_item in uploaded_data:
                 new_product_image = PostImage.objects.create(post = new_data, images = uploaded_item)
           
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 
 

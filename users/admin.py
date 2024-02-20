@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 
 
-from .models import Recommendation,SavedHome
+from .models.saved_house import SavedHome
 
-admin.site.register(Recommendation)
+
 admin.site.register(SavedHome)

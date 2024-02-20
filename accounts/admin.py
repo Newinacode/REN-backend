@@ -1,8 +1,7 @@
 from django.contrib import admin
-
-# Register your models here.
-from .models import CustomUser,OPT
+from .models.user import CustomUser
+from .models.OTP import OTP
 
 
 admin.site.register(CustomUser)
-admin.site.register(OPT)
+admin.site.register(OTP)

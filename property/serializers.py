@@ -14,6 +14,8 @@ class HouseSerializer(PropertySerializer):
         model = House
         fields = '__all__'
 
+
+
 class LandSerializer(PropertySerializer):
     class Meta(PropertySerializer.Meta):
         model = Land
