@@ -1,8 +1,11 @@
-from django.urls import path
-from .views.post import PostDetailView,PostView,PostSearchByArea
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+
+from .views.post import PostViewSet
+
+router = DefaultRouter()
+router.register(r"post", PostViewSet, basename="post")
 
 urlpatterns = [
-    path('', PostView.as_view(), name='add-post'),
-    path('<int:pk>/', PostDetailView.as_view(), name='login'),
-    path('search/',PostSearchByArea.as_view(),name="search")
+    path("", include(router.urls)),
 ]

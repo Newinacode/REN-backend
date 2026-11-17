@@ -22,19 +22,20 @@ class CustomUser(AbstractBaseUser):
         return self.email
 
     def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
-        return True
+        """Only admin accounts can use Django's permission system."""
+        return self.is_active and self.is_admin
 
     def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return True
+        """Only admin accounts can access app modules in the admin."""
+        return self.is_active and self.is_admin
 
     @property
     def is_staff(self):
-        "Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
+        """Admin accounts are the only staff accounts."""
+        return self.is_admin
+
+    @property
+    def is_superuser(self):
         return self.is_admin
         
     class Meta:

@@ -1,60 +1,82 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from accounts.models.user import CustomUser
+from posts.models.post import Post
+from posts.serializers.post import PostSerializer
+
 from ..models.saved_house import SavedHome
 from ..serializers.saved_house import SavedHouseSerializer
-from posts.serializers.post import PostSerializer
-from rest_framework.response import Response
-from posts.models.post import Post
-from rest_framework.views import status
-from django.shortcuts import get_object_or_404
-from accounts.models.user import CustomUser
 
 
-class ListSavedHouse(APIView): 
-    def get(self,request,pk,format=None): 
-        user = CustomUser.objects.get(pk=pk)
-        savedhome = SavedHome.objects.filter(user=pk)
-        post_array = []
-        for i in savedhome: 
-            post_array.append(i.post.id)
-        saved_post = Post.objects.filter(id__in = post_array)
-        serializer = PostSerializer(saved_post,many=True)
+def _ensure_owner(request, user_id):
+    return request.user.id == user_id or request.user.is_staff
+
+
+class ListSavedHouse(APIView):
+    """GET /savedhome/<user_id>/ - all listings saved by a user."""
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk, format=None):
+        if not _ensure_owner(request, pk):
+            return Response(
+                {"message": "You can only view your own saved listings."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        saved_posts = (
+            Post.objects.filter(saved_by__user_id=pk)
+            .select_related("author")
+            .prefetch_related("images")
+            .order_by("-saved_by__created_at")
+        )
+        serializer = PostSerializer(
+            saved_posts, many=True, context={"request": request}
+        )
         return Response(serializer.data)
-
-
 
 
 class SavedHouseDetail(APIView):
+    """GET / POST / DELETE /savedhome/<user_id>/<post_id>/"""
 
+    permission_classes = (IsAuthenticated,)
 
-    def get(self,request,userId,postId,format=None):
-        user = CustomUser.objects.get(pk=userId)
-        post = Post.objects.get(pk=postId)
+    def get(self, request, userId, postId, format=None):
+        if not _ensure_owner(request, userId):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        saved_home = SavedHome.objects.filter(
+            user_id=userId, post_id=postId
+        ).first()
+        if saved_home is None:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            SavedHouseSerializer(saved_home, context={"request": request}).data
+        )
 
-        savedHome = SavedHome.objects.filter(user=user,post=post)
-        if savedHome: 
-            savedHome = savedHome[0]
+    def post(self, request, userId, postId, format=None):
+        if not _ensure_owner(request, userId):
+            return Response(
+                {"message": "You can only save listings to your own account."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        get_object_or_404(CustomUser, pk=userId)
+        get_object_or_404(Post, pk=postId)
+        saved_home, created = SavedHome.objects.get_or_create(
+            user_id=userId, post_id=postId
+        )
+        return Response(
+            SavedHouseSerializer(saved_home).data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
 
-        else:
-                return Response(status=status.HTTP_204_NO_CONTENT)
-        serializer = SavedHouseSerializer(savedHome)
-        return Response(serializer.data)
-        
-
-    def post(self,request,userId,postId,format=None): 
-        user = CustomUser.objects.get(pk=userId)
-        post = Post.objects.get(pk=postId)
-        savedHome = SavedHome(user=user,post=post)
-        savedHome.save()
-        return Response({"message":"post is saved"},status=status.HTTP_201_CREATED)
-
-
-    def delete(self,request,userId,postId,format=None):
-        user = CustomUser.objects.get(pk=userId)
-        post = Post.objects.get(pk=postId)
-        savedHome = SavedHome.objects.get(user=user,post=post)
-        savedHome.delete()
-        return Response({"message":"saved post is deleted"},status=status.HTTP_200_OK)
-
-
-
+    def delete(self, request, userId, postId, format=None):
+        if not _ensure_owner(request, userId):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        SavedHome.objects.filter(user_id=userId, post_id=postId).delete()
+        return Response(
+            {"message": "Saved listing removed."}, status=status.HTTP_200_OK
+        )

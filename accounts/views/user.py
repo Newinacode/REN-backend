@@ -1,109 +1,130 @@
-from django.shortcuts import render
-
-# Create your views here.
-from rest_framework import generics, permissions
+from django.contrib.auth import authenticate
+from rest_framework import generics, status
+from rest_framework.permissions import (
+    AllowAny,
+    BasePermission,
+    IsAdminUser,
+    IsAuthenticated,
+)
 from rest_framework.response import Response
-from rest_framework.views import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+
 from ..models.user import CustomUser
 from ..serializers.user import CustomUserSerializer
-from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.views import APIView
-from django.core.mail import send_mail
 
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+
+def tokens_for(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh_token": str(refresh),
+        "access_token": str(refresh.access_token),
+    }
+
 
 class RegisterUserView(generics.CreateAPIView):
-    """
-    POST auth/register/
-    """
+    """POST /auth/register/"""
+
     serializer_class = CustomUserSerializer
+    permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        serializer = CustomUserSerializer(data = request.data)
-        data = {}
-        response_status = ''
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            new_user = serializer.save()
-            print(new_user)
-            data = {
-                "data":CustomUserSerializer(new_user).data,
-                "message":"User has been created Successfully"
-            }
-            response_status = status.HTTP_201_CREATED
-            
-        else: 
-            data = {
-                "message":serializer.errors
-            }
-            response_status = status.HTTP_400_BAD_REQUEST
-        return Response (
-            data = data, 
-            status = response_status
+            user = serializer.save()
+            return Response(
+                {
+                    "message": "Account created. Verify your email with the OTP.",
+                    "user": CustomUserSerializer(user).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {"message": "Could not create the account.", "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
-class LoginUserView(generics.CreateAPIView):
-    """
-    POST auth/login/
-    """
-    serializer_class = CustomUserSerializer
+class LoginUserView(APIView):
+    """POST /auth/login/"""
+
+    permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        email = request.data.get("email", "")
-        password = request.data.get("password", "")
-        
-        # user = CustomUser.objects.filter(email=email).first()
-        # user = get_object_or_404(CustomUser,email=email)
-        user = authenticate(email=email, password=password)
-        
-        data = {}
-        print("here")
+        email = (request.data.get("email") or "").strip().lower()
+        password = request.data.get("password") or ""
 
-        if user:
-            # if user.check_password(password):
-            #     RefreshToken
-            refresh = RefreshToken.for_user(user)
-            data = {
-                "user" : CustomUserSerializer(user).data,
-                "token":{
-                    "refresh_token":str(refresh),
-                    "access_token":str(refresh.access_token)
-                },
-                "message": "Login Sucessfully"
-            }
-
+        if not email or not password:
             return Response(
-                data=data,
-                status=status.HTTP_200_OK
+                {"message": "Email and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
+
+        user = authenticate(request=request, email=email, password=password)
+        if not user:
             return Response(
-            data={
-                "message": "Invalid credentials. Try again."
+                {"message": "Invalid credentials. Try again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not user.is_active:
+            return Response(
+                {"message": "This account has been disabled."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return Response(
+            {
+                "message": "Logged in successfully.",
+                "user": CustomUserSerializer(user).data,
+                "is_verified": user.is_verified,
+                **tokens_for(user),
             },
-            status=status.HTTP_400_BAD_REQUEST
-            )
+            status=status.HTTP_200_OK,
+        )
 
+
+class IsSelfOrAdmin(BasePermission):
+    """A user may only read their own profile unless they are staff."""
+
+    def has_object_permission(self, request, view, obj):
+        return request.user.is_staff or obj.id == request.user.id
 
 
 class UserDetail(generics.RetrieveAPIView):
-    
+    """GET /users/<pk>/"""
+
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = (IsAuthenticated, IsSelfOrAdmin)
 
 
+class UserList(generics.ListAPIView):
+    """GET /users/ (staff only)"""
 
-
-# def my_view(request): 
-#     request.user
+    queryset = CustomUser.objects.all().order_by("-id")
+    serializer_class = CustomUserSerializer
+    permission_classes = (IsAdminUser,)
 
 
 class getUserInfoByAccessToken(APIView):
+    """POST /auth/token/  { "access_token": "..." }"""
 
-    def post(self,request):
-        token = request.data.pop("access_token")
-        access_token = AccessToken(access_token)
-        return Response(access_token['user_id'])
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        raw_token = request.data.get("access_token")
+        if not raw_token:
+            return Response(
+                {"message": "access_token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            token = AccessToken(raw_token)
+            user = CustomUser.objects.get(id=token["user_id"])
+        except (TokenError, KeyError, CustomUser.DoesNotExist):
+            return Response(
+                {"message": "Invalid or expired token."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        return Response(CustomUserSerializer(user).data)
